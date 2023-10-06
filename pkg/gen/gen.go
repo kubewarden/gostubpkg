@@ -245,6 +245,10 @@ func stubFunctions(astFile *ast.File, outFile *bytes.Buffer, pkgName string, fun
 			continue
 		}
 
+		if isInterfaceDecl(decl) {
+			continue
+		}
+
 		if !ast.IsExported(decl.Name.Name) {
 			continue
 		}
@@ -272,6 +276,21 @@ func stubFunctions(astFile *ast.File, outFile *bytes.Buffer, pkgName string, fun
 	return nil
 }
 
+// check if it's an interface method declaration
+func isInterfaceDecl(decl *ast.FuncDecl) bool {
+	if decl.Recv != nil {
+		if len(decl.Recv.List) != 1 {
+			panic(fmt.Errorf("strange receiver for %s: %#v", decl.Name.Name, decl.Recv))
+		}
+
+		field := decl.Recv.List[0]
+		if len(field.Names) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // getRecvType get the name of a method receiver
 // Examples:
 // func (s *Struct) Foo() {} -> (*Struct)
@@ -293,13 +312,13 @@ func getRecvType(decl *ast.FuncDecl) string {
 	case *ast.StarExpr:
 		switch xType := t.X.(type) {
 		case *ast.Ident:
-			return fmt.Sprintf(".(*%s)", xType.Name)
+			return fmt.Sprintf("(*%s)", xType.Name)
 		default:
 			// not an identificator?
-			panic(fmt.Errorf("unsupported receiver for %s: %#v", decl.Name.Name, decl.Recv))
+			return ""
 		}
 	default:
 		// some new syntax?
-		panic(fmt.Errorf("unsupported receiver for %s: %#v", decl.Name.Name, decl.Recv))
+		return ""
 	}
 }
