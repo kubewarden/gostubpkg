@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
+	"go/token"
 	"os"
 	"path/filepath"
 	"slices"
@@ -112,6 +113,11 @@ func GenerateStubs(patterns []string, generateGoMod bool, allowImports []string,
 				continue
 			}
 
+			err = stubConstsVars(astFile, buf, importedPackages)
+			if err != nil {
+				return err
+			}
+
 			err = stubTypes(astFile, buf, importedPackages)
 			if err != nil {
 				return err
@@ -197,7 +203,53 @@ func loadPackages(patterns []string) ([]*packages.Package, error) {
 	return pkgs, nil
 }
 
-func stubTypes(astFile *ast.File, f *bytes.Buffer, importedPackages []string) error {
+func stubConstsVars(astFile *ast.File, buf *bytes.Buffer, importedPackages []string) error {
+	for _, xdecl := range astFile.Decls {
+		decl, ok := xdecl.(*ast.GenDecl)
+		if !ok {
+			continue
+		}
+
+		t := ""
+		if decl.Tok == token.CONST {
+			t = "const"
+		} else if decl.Tok == token.VAR {
+			t = "var"
+		} else {
+			continue
+		}
+
+		for _, spec := range decl.Specs {
+			valueSpec, ok := spec.(*ast.ValueSpec)
+			if !ok {
+				continue
+			}
+			for _, name := range valueSpec.Names {
+				v := fmt.Sprintf("%s %s", t, name)
+				if len(valueSpec.Values) > 0 {
+					value, ok := valueSpec.Values[0].(*ast.BasicLit)
+					// TODO: handle other types
+					if !ok {
+						continue
+					}
+					v += fmt.Sprintf(" = %s", value.Value)
+				} else {
+					v += fmt.Sprintf(" %s", formatType(valueSpec.Type, importedPackages))
+				}
+				v += "\n\n"
+
+				_, err := buf.WriteString(v)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func stubTypes(astFile *ast.File, buf *bytes.Buffer, importedPackages []string) error {
 	for n, o := range astFile.Scope.Objects {
 		// private types are create too
 		// this is needed for private embedded types in structs
@@ -207,7 +259,7 @@ func stubTypes(astFile *ast.File, f *bytes.Buffer, importedPackages []string) er
 			switch t := ts.Type.(type) {
 			case *ast.StructType:
 				field := formatStructFields(t.Fields, importedPackages)
-				_, err := f.WriteString("type " + n + " struct " + "{" + field + "}\n\n")
+				_, err := buf.WriteString("type " + n + " struct " + "{" + field + "}\n\n")
 				if err != nil {
 					return err
 				}
@@ -222,12 +274,13 @@ func stubTypes(astFile *ast.File, f *bytes.Buffer, importedPackages []string) er
 					i += fmt.Sprintf("%s(%s) %s\n", method.Names[0].Name, formatFields(m.Params, importedPackages), formatFuncResults(m.Results, importedPackages))
 				}
 				i += "}\n\n"
-				_, err := f.WriteString(i)
+				_, err := buf.WriteString(i)
 				if err != nil {
 					return err
 				}
+
 			default:
-				_, err := f.WriteString("type " + n + " " + formatType(ts.Type, importedPackages) + "\n\n")
+				_, err := buf.WriteString("type " + n + " " + formatType(ts.Type, importedPackages) + "\n\n")
 				if err != nil {
 					return err
 				}
@@ -238,7 +291,7 @@ func stubTypes(astFile *ast.File, f *bytes.Buffer, importedPackages []string) er
 	return nil
 }
 
-func stubFunctions(astFile *ast.File, outFile *bytes.Buffer, pkgName string, functionsBodies map[string]string, importedPackages []string) error {
+func stubFunctions(astFile *ast.File, buf *bytes.Buffer, pkgName string, functionsBodies map[string]string, importedPackages []string) error {
 	for _, xdecl := range astFile.Decls {
 		decl, ok := xdecl.(*ast.FuncDecl)
 		if !ok {
@@ -267,7 +320,7 @@ func stubFunctions(astFile *ast.File, outFile *bytes.Buffer, pkgName string, fun
 		} else {
 			foo += " {\n panic(\"stub\")\n}\n\n"
 		}
-		_, err := outFile.WriteString(foo)
+		_, err := buf.WriteString(foo)
 		if err != nil {
 			return err
 		}
