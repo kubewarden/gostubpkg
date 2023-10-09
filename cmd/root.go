@@ -18,11 +18,12 @@ var rootCmd = &cobra.Command{
 	Long: "todo: add long description",
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		outputDir := viper.GetString("output-dir")
 		generateGoMod := viper.GetBool("generate-go-mod")
 		allowImports := viper.GetStringSlice("allow-import")
 		functionsBodies := viper.GetStringMapString("function-body")
 
-		err := gen.GenerateStubs(args, generateGoMod, allowImports, functionsBodies)
+		err := gen.GenerateStubs(args, outputDir, generateGoMod, allowImports, functionsBodies)
 		if err != nil {
 			cobra.CheckErr(err)
 		}
@@ -39,6 +40,7 @@ func Execute() {
 
 func init() {
 	var (
+		outputDir       string
 		generateGoMod   bool
 		allowImports    []string
 		functionsBodies map[string]string
@@ -46,6 +48,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $PWD/gostubpkg.yaml)")
+	rootCmd.Flags().StringVarP(&outputDir, "output-dir", "o", "", "Specify the output directory for the stubs. (default is $PWD)")
 	rootCmd.Flags().BoolVarP(&generateGoMod, "generate-go-mod", "m", false, "Generate the go.mod file in the root of the stub package.")
 	rootCmd.Flags().StringArrayVarP(&allowImports, "allow-import", "a", nil, "Specify this flag multiple times to add external imports\nthat will not be removed from the generated stubs.\nExample: -a k8s.io/api/core/v1")
 	rootCmd.Flags().StringToStringVarP(&functionsBodies, "function-body", "f", nil, "Specify this flag multiple times to add a type mapping.\nExample: -f cmd.Execute='println(\"hello world\")' -f yourpkg.(*YourType).YourMethod='return nil'")

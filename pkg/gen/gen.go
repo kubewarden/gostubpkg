@@ -15,7 +15,7 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-func GenerateStubs(patterns []string, generateGoMod bool, allowImports []string, functionsBodies map[string]string) error {
+func GenerateStubs(patterns []string, outputDir string, generateGoMod bool, allowImports []string, functionsBodies map[string]string) error {
 	if generateGoMod {
 		goModFile, err := os.ReadFile("./go.mod")
 		if err != nil {
@@ -26,12 +26,14 @@ func GenerateStubs(patterns []string, generateGoMod bool, allowImports []string,
 		if err != nil {
 			return err
 		}
-		err = os.MkdirAll(goMod.Module.Mod.Path, 0755)
+
+		modPath := filepath.Join(outputDir, goMod.Module.Mod.Path)
+		err = os.MkdirAll(modPath, 0755)
 		if err != nil {
 			return err
 		}
 
-		genGoModFile, err := os.Create(filepath.Join(goMod.Module.Mod.Path, "go.mod"))
+		genGoModFile, err := os.Create(filepath.Join(modPath, "go.mod"))
 		if err != nil {
 			return err
 		}
@@ -53,7 +55,7 @@ func GenerateStubs(patterns []string, generateGoMod bool, allowImports []string,
 	}
 
 	for _, pkg := range pkgs {
-		err := os.MkdirAll(pkg.PkgPath, 0755)
+		err := os.MkdirAll(filepath.Join(outputDir, pkg.PkgPath), 0755)
 		if err != nil {
 			return err
 		}
@@ -137,7 +139,7 @@ func GenerateStubs(patterns []string, generateGoMod bool, allowImports []string,
 
 		// The file is created before since the imports.Process() function
 		// requires to know the file path.
-		outFile, err := os.Create(pkg.PkgPath + "/" + pkg.Name + ".go")
+		outFile, err := os.Create(filepath.Join(outputDir, pkg.PkgPath, pkg.Name+".go"))
 		if err != nil {
 			return err
 		}
