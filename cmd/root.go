@@ -40,21 +40,29 @@ func Execute() {
 
 func init() {
 	var (
-		outputDir       string
-		generateGoMod   bool
-		allowImports    []string
-		functionsBodies map[string]string
+		outputDir      string
+		generateGoMod  bool
+		allowImports   []string
+		functionBodies map[string]string
 	)
+
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $PWD/gostubpkg.yaml)")
 	rootCmd.Flags().StringVarP(&outputDir, "output-dir", "o", "", "Specify the output directory for the stubs. (default is $PWD)")
-	rootCmd.Flags().BoolVarP(&generateGoMod, "generate-go-mod", "m", false, "Generate the go.mod file in the root of the stub package.")
-	rootCmd.Flags().StringArrayVarP(&allowImports, "allow-import", "a", nil, "Specify this flag multiple times to add external imports\nthat will not be removed from the generated stubs.\nExample: -a k8s.io/api/core/v1")
-	rootCmd.Flags().StringToStringVarP(&functionsBodies, "function-body", "f", nil, "Specify this flag multiple times to add a type mapping.\nExample: -f cmd.Execute='println(\"hello world\")' -f yourpkg.(*YourType).YourMethod='return nil'")
 
-	err := viper.BindPFlags(rootCmd.Flags())
-	if err != nil {
+	rootCmd.Flags().BoolVarP(&generateGoMod, "generate-go-mod", "m", false, "Generate the go.mod file in the root of the stub package.")
+	if err := viper.BindPFlag("generate-go-mod", rootCmd.Flags().Lookup("generate-go-mod")); err != nil {
+		cobra.CheckErr(err)
+	}
+
+	rootCmd.Flags().StringArrayVarP(&allowImports, "allow-import", "a", nil, "Specify this flag multiple times to add external imports\nthat will not be removed from the generated stubs.\nExample: -a k8s.io/api/core/v1")
+	if err := viper.BindPFlag("allow-imports", rootCmd.Flags().Lookup("allow-import")); err != nil {
+		cobra.CheckErr(err)
+	}
+
+	rootCmd.Flags().StringToStringVarP(&functionBodies, "function-body", "f", nil, "Specify this flag multiple times to add a type mapping.\nExample: -f \"cmd.Execute\"='println(\"hello world\")' -f \"yourpkg.(*YourType).YourMethod\"='return nil'")
+	if err := viper.BindPFlag("function-bodies", rootCmd.Flags().Lookup("function-body")); err != nil {
 		cobra.CheckErr(err)
 	}
 }
