@@ -6,13 +6,10 @@ import (
 
 	"github.com/fabriziosestito/go-stub-package/pkg/gen"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var (
-	generateGoMod   bool
-	allowImports    []string
-	functionsBodies map[string]string
-)
+var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "go-stub-package",
@@ -21,22 +18,55 @@ var rootCmd = &cobra.Command{
 	Long: "todo: add long description",
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		generateGoMod := viper.GetBool("generate-go-mod")
+		allowImports := viper.GetStringSlice("allow-import")
+		functionsBodies := viper.GetStringMapString("function-body")
+
 		err := gen.GenerateStubs(args, generateGoMod, allowImports, functionsBodies)
 		if err != nil {
-			panic(err)
+			cobra.CheckErr(err)
 		}
 	},
 }
 
+// Execute executes the root command.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing your CLI '%s'", err)
+	err := rootCmd.Execute()
+	if err != nil {
 		os.Exit(1)
 	}
 }
 
 func init() {
+	var (
+		generateGoMod   bool
+		allowImports    []string
+		functionsBodies map[string]string
+	)
+	cobra.OnInitialize(initConfig)
+
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $PWD/gostubpkg.yaml)")
 	rootCmd.Flags().BoolVarP(&generateGoMod, "generate-go-mod", "m", true, "Generate the go.mod file in the root of the stub package.")
 	rootCmd.Flags().StringArrayVarP(&allowImports, "allow-import", "a", nil, "Specify this flag multiple times to add external imports\nthat will not be removed from the generated stubs.\nExample: -a k8s.io/api/core/v1")
 	rootCmd.Flags().StringToStringVarP(&functionsBodies, "function-body", "f", nil, "Specify this flag multiple times to add a type mapping.\nExample: -f cmd.Execute='println(\"hello world\")' -f yourpkg.(*YourType).YourMethod='return nil'")
+
+	err := viper.BindPFlags(rootCmd.Flags())
+	if err != nil {
+		cobra.CheckErr(err)
+	}
+}
+
+// initConfig reads in config file if set.
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		viper.AddConfigPath(".")
+		viper.SetConfigType("yaml")
+		viper.SetConfigName("gostubpkg.yaml")
+	}
+
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
 }
