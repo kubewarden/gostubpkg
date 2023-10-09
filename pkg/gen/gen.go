@@ -179,28 +179,13 @@ func isLocalImport(importPath string, pkgs []*packages.Package) bool {
 
 // loadPackages loads packages from patterns.
 func loadPackages(patterns []string) ([]*packages.Package, error) {
-	var cfg packages.Config
-	cfg.Mode |= packages.NeedName
-	cfg.Mode |= packages.NeedSyntax
-
-	pkgs, err := packages.Load(&cfg, patterns...)
-	if err != nil {
-		return nil, err
+	config := &packages.Config{
+		Mode: packages.NeedName |
+			packages.NeedTypes |
+			packages.NeedSyntax,
 	}
 
-	// packages.Load() returns a weird GRAPH-IN-ARRAY which means in can contain duplicates
-	pkgMap := make(map[string]*packages.Package, len(pkgs))
-	for _, pkg := range pkgs {
-		pkgPath := pkg.PkgPath
-		pkgMap[pkgPath] = pkg
-	}
-
-	pkgs = make([]*packages.Package, 0, len(pkgMap))
-	for _, pkg := range pkgMap {
-		pkgs = append(pkgs, pkg)
-	}
-
-	return pkgs, nil
+	return packages.Load(config, patterns...)
 }
 
 func stubConstsVars(astFile *ast.File, buf *bytes.Buffer, importedPackages []string) error {
