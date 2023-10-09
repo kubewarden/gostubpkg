@@ -1,6 +1,6 @@
 package main
 
-import "github.com/fabriziosestito/go-stub-package/cmd"
+import "github.com/fabriziosestito/gostubpkg/cmd"
 
 func main() {
 	cmd.Execute()

@@ -1,4 +1,4 @@
-module github.com/fabriziosestito/go-stub-package
+module github.com/fabriziosestito/gostubpkg
 
 go 1.21
 

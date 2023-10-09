@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fabriziosestito/go-stub-package/pkg/gen"
+	"github.com/fabriziosestito/gostubpkg/pkg/gen"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -12,8 +12,8 @@ import (
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use:   "go-stub-package",
-	Short: "go-stub-package is a tool to create fake packages",
+	Use:   "gostubpkg",
+	Short: "gostubpkg is a tool to create fake packages",
 	// TODO: add long description
 	Long: "todo: add long description",
 	Args: cobra.MinimumNArgs(1),

@@ -1,11 +1,11 @@
 SOURCE_FILES := $(shell find . -type f -name '*.go')
 
-go-stub-package: $(SOURCE_FILES) go.mod go.sum
-	go build -o go-stub-package main.go
+gostubpkg: $(SOURCE_FILES) go.mod go.sum
+	go build -o gostubpkg main.go
 
 .PHONY: clean
 clean:
-	rm -f go-stub-package
+	rm -f gostubpkg
 
 .PHONY: test
 test:
