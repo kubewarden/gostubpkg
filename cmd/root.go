@@ -20,10 +20,10 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		outputDir := viper.GetString("output-dir")
 		generateGoMod := viper.GetBool("generate-go-mod")
-		allowImports := viper.GetStringSlice("allow-import")
-		functionsBodies := viper.GetStringMapString("function-body")
+		allowImports := viper.GetStringSlice("allow-imports")
+		functionBodies := viper.GetStringMapString("function-bodies")
 
-		err := gen.GenerateStubs(args, outputDir, generateGoMod, allowImports, functionsBodies)
+		err := gen.GenerateStubs(args, outputDir, generateGoMod, allowImports, functionBodies)
 		if err != nil {
 			cobra.CheckErr(err)
 		}
@@ -49,7 +49,11 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $PWD/gostubpkg.yaml)")
+
 	rootCmd.Flags().StringVarP(&outputDir, "output-dir", "o", "", "Specify the output directory for the stubs. (default is $PWD)")
+	if err := viper.BindPFlag("output-dir", rootCmd.Flags().Lookup("output-dir")); err != nil {
+		cobra.CheckErr(err)
+	}
 
 	rootCmd.Flags().BoolVarP(&generateGoMod, "generate-go-mod", "m", false, "Generate the go.mod file in the root of the stub package.")
 	if err := viper.BindPFlag("generate-go-mod", rootCmd.Flags().Lookup("generate-go-mod")); err != nil {

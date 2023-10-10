@@ -15,7 +15,7 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-func GenerateStubs(patterns []string, outputDir string, generateGoMod bool, allowImports []string, functionsBodies map[string]string) error {
+func GenerateStubs(patterns []string, outputDir string, generateGoMod bool, allowImports []string, functionBodies map[string]string) error {
 	if generateGoMod {
 		goModFile, err := os.ReadFile("./go.mod")
 		if err != nil {
@@ -125,7 +125,7 @@ func GenerateStubs(patterns []string, outputDir string, generateGoMod bool, allo
 				return err
 			}
 
-			err = stubFunctions(astFile, buf, pkg.Name, functionsBodies, importedPackages)
+			err = stubFunctions(astFile, buf, pkg.Name, functionBodies, importedPackages)
 			if err != nil {
 				return err
 			}
