@@ -10,30 +10,32 @@ import (
 	"slices"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/imports"
 )
 
-func GenerateStubs(patterns []string, outputDir string, generateGoMod bool, allowImports []string, functionBodies map[string]string) error {
+func GenerateStubs(inputDir string, patterns []string, outputDir string, generateGoMod bool, allowImports []string, functionBodies map[string]string) error {
 	if generateGoMod {
-		goModFile, err := os.ReadFile("./go.mod")
+		log.Debugf("generating go.mod file")
+		goModFile, err := os.ReadFile(filepath.Join(inputDir, "go.mod"))
 		if err != nil {
 			return err
 		}
 
-		goMod, err := modfile.Parse("./go.mod", goModFile, nil)
+		goMod, err := modfile.Parse("go.mod", goModFile, nil)
 		if err != nil {
 			return err
 		}
 
-		modPath := filepath.Join(outputDir, goMod.Module.Mod.Path)
-		err = os.MkdirAll(modPath, 0755)
+		genGoModPath := filepath.Join(outputDir, goMod.Module.Mod.Path)
+		err = os.MkdirAll(genGoModPath, 0755)
 		if err != nil {
 			return err
 		}
 
-		genGoModFile, err := os.Create(filepath.Join(modPath, "go.mod"))
+		genGoModFile, err := os.Create(filepath.Join(genGoModPath, "go.mod"))
 		if err != nil {
 			return err
 		}
@@ -49,12 +51,18 @@ func GenerateStubs(patterns []string, outputDir string, generateGoMod bool, allo
 		}
 	}
 
-	pkgs, err := loadPackages(patterns)
+	pkgs, err := loadPackages(inputDir, patterns)
 	if err != nil {
 		return err
 	}
 
+	if len(pkgs) == 0 {
+		return fmt.Errorf("no packages found in %s", strings.Join(patterns, ", "))
+	}
+
 	for _, pkg := range pkgs {
+		log.Debugf("generating stubs for package %s", pkg.PkgPath)
+
 		err := os.MkdirAll(filepath.Join(outputDir, pkg.PkgPath), 0755)
 		if err != nil {
 			return err
@@ -180,11 +188,12 @@ func isLocalImport(importPath string, pkgs []*packages.Package) bool {
 }
 
 // loadPackages loads packages from patterns.
-func loadPackages(patterns []string) ([]*packages.Package, error) {
+func loadPackages(inputDir string, patterns []string) ([]*packages.Package, error) {
 	config := &packages.Config{
 		Mode: packages.NeedName |
 			packages.NeedTypes |
 			packages.NeedSyntax,
+		Dir: inputDir,
 	}
 
 	return packages.Load(config, patterns...)
@@ -212,6 +221,8 @@ func stubConstsVars(astFile *ast.File, buf *bytes.Buffer, importedPackages []str
 				continue
 			}
 			for _, name := range valueSpec.Names {
+				log.Tracef("stubbing %s %s", t, name)
+
 				v := fmt.Sprintf("%s %s", t, name)
 				if len(valueSpec.Values) > 0 {
 					value, ok := valueSpec.Values[0].(*ast.BasicLit)
@@ -241,21 +252,25 @@ func stubTypes(astFile *ast.File, buf *bytes.Buffer, importedPackages []string) 
 		// private types are create too
 		// this is needed for private embedded types in structs
 		node := o.Decl
+
 		switch ts := node.(type) {
 		case *ast.TypeSpec:
 			switch t := ts.Type.(type) {
 			case *ast.StructType:
+				log.Tracef("stubbing struct %s", n)
 				field := formatStructFields(t.Fields, importedPackages)
 				_, err := buf.WriteString("type " + n + " struct " + "{" + field + "}\n\n")
 				if err != nil {
 					return err
 				}
 			case *ast.InterfaceType:
+				log.Tracef("stubbing interface %s", n)
 				i := "type " + n + " interface {\n"
 				for _, method := range t.Methods.List {
 					m, ok := method.Type.(*ast.FuncType)
 					if !ok {
 						// TODO: handle embedded interfaces
+						log.Debugf("skipping embedded interface %s", method.Names[0].Name)
 						continue
 					}
 					i += fmt.Sprintf("%s(%s) %s\n", method.Names[0].Name, formatFields(m.Params, importedPackages), formatFuncResults(m.Results, importedPackages))
@@ -267,6 +282,7 @@ func stubTypes(astFile *ast.File, buf *bytes.Buffer, importedPackages []string) 
 				}
 
 			default:
+				log.Tracef("stubbing type %s", n)
 				_, err := buf.WriteString("type " + n + " " + formatType(ts.Type, importedPackages) + "\n\n")
 				if err != nil {
 					return err
@@ -302,11 +318,15 @@ func stubFunctions(astFile *ast.File, buf *bytes.Buffer, pkgName string, functio
 		}
 
 		key := fmt.Sprintf("%s%s.%s", pkgName, recv, decl.Name.Name)
+
+		log.Tracef("stubbing function %s", key)
 		if body, ok := functionsBodies[key]; ok {
+			log.Tracef("using stub body for %s", key)
 			foo += "{" + body + "\n}\n\n"
 		} else {
 			foo += " {\n panic(\"stub\")\n}\n\n"
 		}
+
 		_, err := buf.WriteString(foo)
 		if err != nil {
 			return err
