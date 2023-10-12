@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/fabriziosestito/gostubpkg/pkg/gen"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/v2"
+	"github.com/kubewarden/gostubpkg/pkg/gen"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

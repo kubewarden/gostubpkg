@@ -1,4 +1,4 @@
-module github.com/fabriziosestito/gostubpkg
+module github.com/kubewarden/gostubpkg
 
 go 1.21
 
