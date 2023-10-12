@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	inputDir = "testdata/stubme"
+	inputDir = "testdata/testmod"
 	module   = "github.com/gostubpkg/testmod"
 )
 
@@ -20,12 +20,11 @@ type GenTestSuite struct {
 }
 
 func (suite *GenTestSuite) SetupTest() {
-	suite.inputDir = "testdata/testmod"
 	suite.outputDir = suite.T().TempDir()
 }
 
 func (suite *GenTestSuite) TestGenerateAllPackages() {
-	err := GenerateStubs(suite.inputDir, []string{"./..."}, suite.outputDir, false, nil, nil)
+	err := GenerateStubs(inputDir, []string{"./..."}, suite.outputDir, false, nil, nil)
 	suite.NoError(err)
 
 	suite.True(suite.fileExists("main.go"))
@@ -59,7 +58,7 @@ type Embedme interface{}
 }
 
 func (suite *GenTestSuite) TestGenerateStubsGoMod() {
-	err := GenerateStubs(suite.inputDir, []string{"./..."}, suite.outputDir, true, nil, nil)
+	err := GenerateStubs(inputDir, []string{"./..."}, suite.outputDir, true, nil, nil)
 	suite.NoError(err)
 
 	suite.True(suite.fileExists("go.mod"))
@@ -73,7 +72,7 @@ go 1.21.1
 }
 
 func (suite *GenTestSuite) TestGenerateStubsFuncsPackage() {
-	err := GenerateStubs(suite.inputDir, []string{"./pkg/funcs"}, suite.outputDir, true, nil, nil)
+	err := GenerateStubs(inputDir, []string{"./pkg/funcs"}, suite.outputDir, true, nil, nil)
 	suite.NoError(err)
 
 	suite.True(suite.fileExists("pkg/funcs/funcs.go"))
@@ -101,7 +100,7 @@ type Embedme interface{}
 }
 
 func (suite *GenTestSuite) TestGenerateStubsTypesPackage() {
-	err := GenerateStubs(suite.inputDir, []string{"./pkg/types"}, suite.outputDir, false, nil, nil)
+	err := GenerateStubs(inputDir, []string{"./pkg/types"}, suite.outputDir, false, nil, nil)
 	suite.NoError(err)
 
 	suite.True(suite.fileExists("pkg/types/types.go"))
@@ -151,7 +150,7 @@ type Embedme interface{}
 }
 
 func (suite *GenTestSuite) TestGenerateStubsAllowImports() {
-	err := GenerateStubs(suite.inputDir, []string{"./..."}, suite.outputDir, false, []string{"k8s.io/api/core/v1"}, nil)
+	err := GenerateStubs(inputDir, []string{"./..."}, suite.outputDir, false, []string{"k8s.io/api/core/v1"}, nil)
 	suite.NoError(err)
 
 	generatedFuncs := suite.readFile("pkg/funcs/funcs.go")
@@ -220,7 +219,7 @@ type Embedme interface{}
 }
 
 func (suite *GenTestSuite) TestGenerateStubsFunctionBodies() {
-	err := GenerateStubs(suite.inputDir, []string{"./..."}, suite.outputDir, false, nil, map[string]string{
+	err := GenerateStubs(inputDir, []string{"./..."}, suite.outputDir, false, nil, map[string]string{
 		"funcs.Bar":                    `panic("i don't like generics")`,
 		"types.(*MyStruct).GetPodName": `return "StubPodName"`,
 	})
