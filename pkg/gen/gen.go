@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"sort"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -248,10 +249,17 @@ func stubConstsVars(astFile *ast.File, buf *bytes.Buffer, importedPackages []str
 }
 
 func stubTypes(astFile *ast.File, buf *bytes.Buffer, importedPackages []string) error {
-	for n, o := range astFile.Scope.Objects {
+	// Order the keys to make the output deterministic
+	keys := []string{}
+	for n := range astFile.Scope.Objects {
+		keys = append(keys, n)
+	}
+	sort.Strings(keys)
+
+	for _, n := range keys {
 		// private types are create too
 		// this is needed for private embedded types in structs
-		node := o.Decl
+		node := astFile.Scope.Objects[n].Decl
 
 		switch ts := node.(type) {
 		case *ast.TypeSpec:
