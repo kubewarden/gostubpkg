@@ -20,11 +20,9 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "gostubpkg",
-	Short: "gostubpkg is a tool to create fake packages",
-	// TODO: add long description
-	Long: "todo: add long description",
-	Args: cobra.MinimumNArgs(1),
+	Use:   "gostubpkg [flags] <patterns>...",
+	Short: "gostubpkg is a tool for generating stubs of Go packages.",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, patterns []string) {
 		err := k.Load(posflag.Provider(cmd.Flags(), ".", k), nil)
 		if err != nil {
@@ -66,12 +64,12 @@ func init() {
 
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "gostubpkg.yaml", "config file (default is $PWD/gostubpkg.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "gostubpkg.yaml", "config file")
 	rootCmd.PersistentFlags().CountVarP(&verbose, "verbose", "v", "Increase output verbosity. Example: --verbose=2 or -vv")
 
-	rootCmd.Flags().StringVarP(&inputDir, "input-dir", "i", "", "Specify the directory in which to run the build system's query tool that provides information about the packages. (default is $PWD)")
-	rootCmd.Flags().StringVarP(&outputDir, "output-dir", "o", "", "Specify the output directory for the stubs. (default is $PWD)")
-	rootCmd.Flags().BoolVarP(&generateGoMod, "generate-go-mod", "m", false, "Generate the go.mod file in the root of the stub package.")
+	rootCmd.Flags().StringVarP(&inputDir, "input-dir", "i", "", "Specify the directory in which to run the build system's query tool that provides information about the packages (default $PWD)")
+	rootCmd.Flags().StringVarP(&outputDir, "output-dir", "o", "", "Specify the output directory for the stubs (default $PWD)")
+	rootCmd.Flags().BoolVarP(&generateGoMod, "generate-go-mod", "m", false, "Generate the go.mod file in the root of the stub package")
 	rootCmd.Flags().StringSliceVarP(&allowImports, "allow-imports", "a", nil, "Specify this flag multiple times to add external imports\nthat will not be removed from the generated stubs.\nExample: -a k8s.io/api/core/v1")
 	rootCmd.Flags().StringToStringVarP(&functionBodies, "function-bodies", "f", nil, "Specify this flag multiple times to add a type mapping.\nExample: -f \"cmd.Execute\"='println(\"hello world\")' -f \"yourpkg.(*YourType).YourMethod\"='return nil'")
 }
