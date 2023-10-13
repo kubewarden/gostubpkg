@@ -16,7 +16,6 @@ const (
 type GenTestSuite struct {
 	suite.Suite
 	outputDir string
-	inputDir  string
 }
 
 func (suite *GenTestSuite) SetupTest() {
