@@ -1,6 +1,6 @@
 module github.com/gostubpkg/testmod
 
-go 1.21.1
+go 1.21.5
 
 require (
 	github.com/gogo/protobuf v1.3.2
