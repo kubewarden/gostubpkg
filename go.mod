@@ -6,7 +6,7 @@ toolchain go1.23.2
 
 require (
 	github.com/knadh/koanf/parsers/yaml v0.1.0
-	github.com/knadh/koanf/providers/file v1.1.0
+	github.com/knadh/koanf/providers/file v1.1.2
 	github.com/knadh/koanf/providers/posflag v0.1.0
 	github.com/knadh/koanf/v2 v2.1.1
 	github.com/sirupsen/logrus v1.9.3
