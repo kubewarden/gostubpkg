@@ -31,7 +31,7 @@ func GenerateStubs(inputDir string, patterns []string, outputDir string, generat
 		}
 
 		genGoModPath := filepath.Join(outputDir, goMod.Module.Mod.Path)
-		err = os.MkdirAll(genGoModPath, 0755)
+		err = os.MkdirAll(genGoModPath, 0o755)
 		if err != nil {
 			return err
 		}
@@ -64,7 +64,7 @@ func GenerateStubs(inputDir string, patterns []string, outputDir string, generat
 	for _, pkg := range pkgs {
 		log.Debugf("generating stubs for package %s", pkg.PkgPath)
 
-		err := os.MkdirAll(filepath.Join(outputDir, pkg.PkgPath), 0755)
+		err := os.MkdirAll(filepath.Join(outputDir, pkg.PkgPath), 0o755)
 		if err != nil {
 			return err
 		}
@@ -170,7 +170,7 @@ func GenerateStubs(inputDir string, patterns []string, outputDir string, generat
 
 // isThirdParty checks if the given import path is a third party package. (no standard library)
 func isThirdParty(importPath string, allowImports []string) bool {
-	if slices.Contains(allowImports, strings.Replace(importPath, "\"", "", -1)) {
+	if slices.Contains(allowImports, strings.ReplaceAll(importPath, "\"", "")) {
 		return false
 	}
 	// Third party package import path usually contains "." (".com", ".org", ...)
@@ -206,13 +206,13 @@ func stubConstsVars(astFile *ast.File, buf *bytes.Buffer, importedPackages []str
 		if !ok {
 			continue
 		}
-
 		t := ""
-		if decl.Tok == token.CONST {
+		switch decl.Tok {
+		case token.CONST:
 			t = "const"
-		} else if decl.Tok == token.VAR {
+		case token.VAR:
 			t = "var"
-		} else {
+		default:
 			continue
 		}
 
