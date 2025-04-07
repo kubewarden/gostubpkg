@@ -10,7 +10,6 @@ import (
 	"github.com/knadh/koanf/v2"
 	"github.com/kubewarden/gostubpkg/pkg/gen"
 	"github.com/sirupsen/logrus"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +25,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, patterns []string) {
 		err := k.Load(posflag.Provider(cmd.Flags(), ".", k), nil)
 		if err != nil {
-			log.Fatalf("error loading flags: %v", err)
+			logrus.Fatalf("error loading flags: %v", err)
 		}
 
 		logrus.SetLevel(logrus.Level(int(logrus.InfoLevel) + k.Int("verbose")))
@@ -78,7 +77,7 @@ func init() {
 func initConfig() {
 	err := k.Load(file.Provider(cfgFile), yaml.Parser())
 	if err == nil {
-		log.Infof("using config file: %s", cfgFile)
+		logrus.Infof("using config file: %s", cfgFile)
 	} else if !os.IsNotExist(err) {
 		cobra.CheckErr(fmt.Errorf("error loading config file: %v", err))
 	}
