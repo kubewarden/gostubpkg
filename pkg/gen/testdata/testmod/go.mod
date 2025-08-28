@@ -6,7 +6,7 @@ toolchain go1.25.0
 
 require (
 	github.com/gogo/protobuf v1.3.2
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	k8s.io/api v0.34.0
 )
 
