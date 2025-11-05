@@ -2,7 +2,7 @@ module github.com/kubewarden/gostubpkg
 
 go 1.24.0
 
-toolchain go1.25.3
+toolchain go1.25.4
 
 require (
 	github.com/knadh/koanf/parsers/yaml v1.1.0
