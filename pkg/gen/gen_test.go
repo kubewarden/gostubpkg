@@ -65,7 +65,7 @@ func (suite *GenTestSuite) TestGenerateStubsGoMod() {
 	generatedGoMod := suite.readFile("go.mod")
 	expectedGoMod := `module github.com/gostubpkg/testmod
 
-go 1.24.0
+go 1.25.0
 `
 	suite.Equal(expectedGoMod, generatedGoMod)
 }
