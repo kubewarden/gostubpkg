@@ -2,7 +2,7 @@ module github.com/gostubpkg/testmod
 
 go 1.25.0
 
-toolchain go1.26.1
+toolchain go1.26.2
 
 require (
 	github.com/gogo/protobuf v1.3.2
