@@ -28,6 +28,8 @@ github.com/knadh/koanf/parsers/yaml v1.0.0 h1:PXyeHCRhAMKyfLJaoTWsqUTxIFeDMmdAKz
 github.com/knadh/koanf/parsers/yaml v1.0.0/go.mod h1:Q63VAOh/s6XaQs6a0TB2w9GFUuuPGvfYrCSWb9eWAQU=
 github.com/knadh/koanf/parsers/yaml v1.1.0 h1:3ltfm9ljprAHt4jxgeYLlFPmUaunuCgu1yILuTXRdM4=
 github.com/knadh/koanf/parsers/yaml v1.1.0/go.mod h1:HHmcHXUrp9cOPcuC+2wrr44GTUB0EC+PyfN3HZD9tFg=
+github.com/knadh/koanf/parsers/yaml v1.1.1 h1:u70vV5IyaM0HvONh8HoqBC97oTgO33KcpZbTLiKVinU=
+github.com/knadh/koanf/parsers/yaml v1.1.1/go.mod h1:HHmcHXUrp9cOPcuC+2wrr44GTUB0EC+PyfN3HZD9tFg=
 github.com/knadh/koanf/providers/file v1.1.2 h1:aCC36YGOgV5lTtAFz2qkgtWdeQsgfxUkxDOe+2nQY3w=
 github.com/knadh/koanf/providers/file v1.1.2/go.mod h1:/faSBcv2mxPVjFrXck95qeoyoZ5myJ6uxN8OOVNJJCI=
 github.com/knadh/koanf/providers/file v1.2.0 h1:hrUJ6Y9YOA49aNu/RSYzOTFlqzXSCpmYIDXI7OJU6+U=
