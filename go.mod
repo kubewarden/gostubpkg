@@ -11,7 +11,7 @@ require (
 	github.com/knadh/koanf/v2 v2.3.6
 	github.com/sirupsen/logrus v1.10.0
 	github.com/spf13/cobra v1.10.2
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	golang.org/x/mod v0.40.0
 	golang.org/x/tools v0.49.0
 )
